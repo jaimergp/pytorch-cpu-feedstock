@@ -19,7 +19,7 @@ source:
     - fix_blas_lapack.patch
 
 build:
-  number: 1
+  number: 2
 
 outputs:
   - name: pytorch
@@ -27,6 +27,8 @@ outputs:
       string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
       string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                      # [cuda_compiler_version == "None"]
       detect_binary_files_with_prefix: False
+      run_exports:
+        - {{ pin_subpackage('pytorch', max_pin='x.x.x') }}
     script: build_pytorch.sh  # [not win]
     script: bld_pytorch.bat   # [win]
     activate_in_script: true
@@ -131,11 +133,16 @@ outputs:
         - pip check
 
   - name: pytorch-cpu   # [cuda_compiler_version == "None"]
+    build:
+      run_exports:
+        - {{ pin_subpackage('pytorch-cpu', max_pin='x.x.x') }}    # [cuda_compiler_version == "None"]
   - name: pytorch-gpu   # [cuda_compiler_version != "None"]
     build:
       string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
       string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                      # [cuda_compiler_version == "None"]
       detect_binary_files_with_prefix: False
+      run_exports:
+        - {{ pin_subpackage('pytorch-gpu', max_pin='x.x.x') }}   # [cuda_compiler_version != "None"]
       # weigh down cpu implementation and give cuda preference
       track_features:
         - pytorch-cpu                                      # [cuda_compiler_version == "None"]
